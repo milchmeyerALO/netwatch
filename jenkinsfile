@@ -1,0 +1,68 @@
+pipeline {
+
+    agent any
+
+    stages {
+
+        stage('Syntax Check') {
+            steps {
+                sh 'bash -n HelloWorld.sh'
+            }
+        }
+
+        stage('ShellCheck') {
+            steps {
+                sh 'shellcheck HelloWorld.sh'
+            }
+        }
+
+        stage('Function Test') {
+            steps {
+                sh './test.sh'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t hello-world-bash:${BUILD_NUMBER} .'
+            }
+        }
+
+        stage('Container Test') {
+            steps {
+                sh '''
+                    OUTPUT=$(docker run --rm hello-world-bash:${BUILD_NUMBER})
+
+                    if [ "$OUTPUT" = "Hello World!" ]; then
+                        echo "Docker-Test erfolgreich!"
+                    else
+                        echo "Docker-Test fehlgeschlagen!"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
+        stage('Create Latest Image') {
+            steps {
+                sh '''
+                    docker tag \
+                    hello-world-bash:${BUILD_NUMBER} \
+                    hello-world-bash:latest
+                '''
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo 'Pipeline erfolgreich!'
+            echo 'Docker-Image wurde erstellt.'
+        }
+
+        failure {
+            echo 'Pipeline fehlgeschlagen!'
+        }
+    }
+}
