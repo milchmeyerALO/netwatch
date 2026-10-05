@@ -11,6 +11,16 @@ Die Anwendung prüft regelmäßig die Erreichbarkeit konfigurierte Systeme und s
 - **phpMyAdmin** – Verwaltung und Einsicht in die Datenbank
 - **Weboberfläche** – Anzeige der Prüfergebnisse
 
+## Vorgehen
+
+Das Projekt wird schrittweise aufgebaut und anschließend über eine CI/CD-Pipeline automatisiert.
+1. Entwicklung und Versionsverwaltung über GitHub
+2. Automatisierte Prüfung des Bash-Skripts mit Jenkins
+3. Erstellen und Testen eines Docker-Images
+4. Aufbau der benötigten Container mit Docker Compose
+5. Speicherung der Prüfergebnisse in MariaDB
+6. Bereitstellung einer Weboberfläche zur Anzeige der Ergebnisse
+
 ## CI/CD
 
 Das Projekt wird über Jenkins automatisiert gebaut und getestet.
