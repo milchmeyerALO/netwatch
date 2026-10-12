@@ -2,9 +2,9 @@
 
 set -e
 
-EXPECTED="Hello World!"
+EXPECTED="Server erreichbar"
 
-ACTUAL=$(./HelloWorld.sh)
+ACTUAL=$(./netwatch.sh)
 
 if [ "$ACTUAL" = "$EXPECTED" ]; then
 echo "TEST OK"
