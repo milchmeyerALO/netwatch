@@ -32,8 +32,9 @@ pipeline {
             steps {
                 sh '''
                     OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER})
-
-                     if echo "$OUTPUT" | grep -q '^TEST OK$'; then
+                    LAST_LINE=$(echo "$OUTPUT" | tail -n 1)
+                    
+                     if [ "$LAST_LINE" = "TEST OK" ]; then
                         echo "Docker-Test erfolgreich!"
                     else
                         echo "Docker-Test fehlgeschlagen!"
