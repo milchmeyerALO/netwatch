@@ -2,16 +2,14 @@
 
 set -e
 
-EXPECTED="Server erreichbar"
+OUTPUT=$(./netwatch.sh)
 
-ACTUAL=$(./netwatch.sh)
+echo "$OUTPUT"
 
-if [ "$ACTUAL" = "$EXPECTED" ]; then
-    echo "TEST OK"
-    exit 0
-    else
-echo "TEST FEHLGESCHLAGEN"
-    echo "Erwartet: $EXPECTED"
-    echo "Erhalten: $ACTUAL"
-    exit 1
-fi
+echo "$OUTPUT" | grep -q '^Hostname: .\+' 
+echo "$OUTPUT" | grep -q '^IP-Adresse: .\+'
+echo "$OUTPUT" | grep -q '^Prüfzeitpunkt: [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}$'
+echo "$OUTPUT" | grep -Eq '^Status: (ONLINE|OFFLINE)$'
+echo "$OUTPUT" | grep -Eq '^Antwortzeit: ([0-9]+([.][0-9]+)?|N/A) ms$'
+
+echo "TEST OK"
