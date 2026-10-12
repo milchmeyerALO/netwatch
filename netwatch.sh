@@ -2,6 +2,6 @@
 
 set -e
 
-MESSAGE="Hello World!"
+MESSAGE="Server erreichbar"
 
 echo "$MESSAGE"
