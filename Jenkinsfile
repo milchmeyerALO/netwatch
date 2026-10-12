@@ -31,7 +31,7 @@ pipeline {
         stage('Container Test') {
             steps {
                 sh '''
-                    OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER})
+                    OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER} ./test.sh)
                     LAST_LINE=$(echo "$OUTPUT" | tail -n 1)
                     
                      if [ "$LAST_LINE" = "TEST OK" ]; then
