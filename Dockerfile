@@ -4,8 +4,8 @@ RUN apk add --no-cache bash
 
 WORKDIR /app
 
-COPY HelloWorld.sh .
+COPY netwatch.sh .
 
-RUN chmod +x HelloWorld.sh
+RUN chmod +x netwatch.sh
 
-CMD ["./HelloWorld.sh"]
+CMD ["./netwatch.sh"]
