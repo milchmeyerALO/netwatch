@@ -3,6 +3,12 @@ services:
   netwatch:
     build: .
     restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: netwatch
+      DB_USER: ${MARIADB_USER}
+      DB_PASSWORD: ${MARIADB_PASSWORD}
 
   db:
     image: mariadb
