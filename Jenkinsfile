@@ -4,6 +4,26 @@ pipeline {
 
     stages {
 
+        stage('Deploy') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'netwatch-db-user',
+                        usernameVariable: 'MARIADB_USER',
+                        passwordVariable: 'MARIADB_PASSWORD'
+                    ),
+                    string(
+                        credentialsId: 'netwatch-db-root-password',
+                        variable: 'MARIADB_ROOT_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        docker compose -p netwatch up -d --build
+                    '''
+                }
+            }
+        }
+        
         stage('Syntax Check') {
             steps {
                 sh 'bash -n netwatch.sh'
