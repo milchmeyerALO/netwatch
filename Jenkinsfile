@@ -33,7 +33,7 @@ pipeline {
                 sh '''
                     OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER})
 
-                    if [ "$OUTPUT" = "Server erreichbar" ]; then
+                     if echo "$OUTPUT" | grep -q '^TEST OK$'; then
                         echo "Docker-Test erfolgreich!"
                     else
                         echo "Docker-Test fehlgeschlagen!"
