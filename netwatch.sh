@@ -32,3 +32,41 @@ echo "IP-Adresse: $TARGET"
 echo "Prüfzeitpunkt: $CHECK_DATE"
 echo "Status: $STATUS"
 echo "Antwortzeit: ${RESPONSE_TIME:-N/A} ms"
+
+
+# Status-ID aus der Datenbank ermitteln
+case "$STATUS" in
+    ONLINE)  STATUS_ID=1 ;;
+    OFFLINE) STATUS_ID=2 ;;
+esac
+
+# System-ID aus der Datenbank ermitteln
+SYSTEM_ID=$(mariadb \
+    --host="$DB_HOST" \
+    --port="$DB_PORT" \
+    --user="$DB_USER" \
+    --password="$DB_PASSWORD" \
+    "$DB_NAME" \
+    --batch --skip-column-names \
+    -e "SELECT system_id FROM system WHERE system_name = '$HOSTNAME' LIMIT 1;")
+
+# Antwortzeit für SQL vorbereiten
+if [ -n "$RESPONSE_TIME" ]; then
+    SQL_RESPONSE_TIME="$RESPONSE_TIME"
+else
+    SQL_RESPONSE_TIME="NULL"
+fi
+
+# Prüfergebnis speichern
+mariadb \
+    --host="$DB_HOST" \
+    --port="$DB_PORT" \
+    --user="$DB_USER" \
+    --password="$DB_PASSWORD" \
+    "$DB_NAME" \
+    -e "INSERT INTO checks
+        (system_id, check_date, status_id, response_time)
+        VALUES
+        ($SYSTEM_ID, '$CHECK_DATE', $STATUS_ID, $SQL_RESPONSE_TIME);"
+
+echo "Datenbank: Prüfergebnis gespeichert."
