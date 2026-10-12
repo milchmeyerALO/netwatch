@@ -11,6 +11,13 @@ Die Anwendung prüft regelmäßig die Erreichbarkeit konfigurierte Systeme und s
 - **phpMyAdmin** – Verwaltung und Einsicht in die Datenbank
 - **Weboberfläche** – Anzeige der Prüfergebnisse
 
+## Dateien
+- **Dockerfile**: Legt fest, wie das Docker-Image für NetWatch erstellt wird.
+- **Jenkinsfile**: Definiert die CI/CD-Pipeline mit Syntaxprüfung, ShellCheck, Funktionstest, Image-Build und Container-Test.
+- **compose.yaml**: Konfiguriert die benötigten Docker-Container und deren Zusammenspiel.
+- **netwatch.sh**: Hauptskript von NetWatch zur Prüfung der Erreichbarkeit von Netzwerkgeräten und Servern.
+- **test.sh**: Testet die Funktion von netwatch.sh und prüft, ob die erwartete Ausgabe erzeugt wird.
+
 ## Vorgehen
 
 Das Projekt wird schrittweise aufgebaut und anschließend über eine CI/CD-Pipeline automatisiert.
