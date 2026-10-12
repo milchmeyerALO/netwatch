@@ -6,13 +6,13 @@ pipeline {
 
         stage('Syntax Check') {
             steps {
-                sh 'bash -n HelloWorld.sh'
+                sh 'bash -n netwatch.sh'
             }
         }
 
         stage('ShellCheck') {
             steps {
-                sh 'shellcheck HelloWorld.sh'
+                sh 'shellcheck netwatch.sh'
             }
         }
 
@@ -24,16 +24,16 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t hello-world-bash:${BUILD_NUMBER} .'
+                sh 'docker build -t netwatch-bash:${BUILD_NUMBER} .'
             }
         }
 
         stage('Container Test') {
             steps {
                 sh '''
-                    OUTPUT=$(docker run --rm hello-world-bash:${BUILD_NUMBER})
+                    OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER})
 
-                    if [ "$OUTPUT" = "Hello World!" ]; then
+                    if [ "$OUTPUT" = "Server erreichbar" ]; then
                         echo "Docker-Test erfolgreich!"
                     else
                         echo "Docker-Test fehlgeschlagen!"
@@ -47,8 +47,8 @@ pipeline {
             steps {
                 sh '''
                     docker tag \
-                    hello-world-bash:${BUILD_NUMBER} \
-                    hello-world-bash:latest
+                    netwatch-bash:${BUILD_NUMBER} \
+                    netwatch-bash:latest
                 '''
             }
         }
