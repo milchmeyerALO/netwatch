@@ -31,11 +31,14 @@ services:
     depends_on:
       - db
 
-  web:
-    image: php:apache
-    restart: always
+    web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     ports:
-      - 80:80
+      - "80:80"
+    volumes:
+      - WebserverVolume:/var/www/html
     depends_on:
       - db
 
