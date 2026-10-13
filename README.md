@@ -46,134 +46,128 @@ Deployment
 
 Der Jenkins-Pipeline-Code befindet sich im `Jenkinsfile`.
 
-Umgebung: Ubuntu Server, Jenkins, Docker, Docker Compose, MariaDB und GitHub
+Projekt: Netzwerk-Monitoring mit automatisierter Build- und Testpipeline
+Repository: https://github.com/milchmeyerALO/netwatch
+Betriebssystem: Ubuntu Server 24.04 LTS
+Virtualisierung: VirtualBox unter Windows 11
 Stand: 12. Oktober 2026
 
-1. Projektübersicht
+1. Projektbeschreibung
 
-1.1 Ziel des Projekts
+NetWatch ist ein kleines Netzwerk-Monitoring-System zur Überwachung von Servern und anderen Netzwerkgeräten.
 
-NetWatch ist ein kleines Netzwerk-Monitoring-System zur Überwachung von Servern und anderen Netzwerkgeräten. Die Anwendung prüft regelmäßig, ob konfigurierte Systeme erreichbar sind, und speichert die Ergebnisse in einer MariaDB-Datenbank.
+Die Anwendung prüft regelmäßig die Erreichbarkeit konfigurierter Systeme und speichert die Ergebnisse zusammen mit dem jeweiligen Status und der Antwortzeit in einer MariaDB-Datenbank. Die Daten sollen anschließend über eine Weboberfläche angezeigt werden können. Für die direkte Verwaltung der Datenbank steht phpMyAdmin zur Verfügung.
 
-Das Projekt verbindet die Entwicklung einer Bash-Anwendung mit einer automatisierten CI/CD-Pipeline. Ziel ist es, Änderungen am Quellcode systematisch zu überprüfen, als Docker-Image bereitzustellen und die für den Betrieb benötigten Container zu verwalten.
+Ein weiterer Schwerpunkt des Projekts ist die Automatisierung der Entwicklung und Bereitstellung. Mithilfe von GitHub, Jenkins und Docker wird der Anwendungscode versioniert, automatisiert geprüft und in einem Docker-Image bereitgestellt.
 
-Das Projekt ist im GitHub-Repository verfügbar:
+1.1 Projektziele
 
-https://github.com/milchmeyerALO/netwatch
+Netzwerkgeräte und Server regelmäßig auf ihre Erreichbarkeit prüfen.
 
-1.2 Projektziele
+Prüfergebnisse strukturiert in einer MariaDB-Datenbank speichern.
 
-Automatisierte Überprüfung der Bash-Syntax.
+Die Anwendung in einem Docker-Container ausführen.
 
-Statische Codeanalyse mit ShellCheck.
+Den Quellcode mit Git und GitHub versionieren.
 
-Automatisierte Funktionstests.
+Syntax, Codequalität und Funktion automatisiert mit Jenkins überprüfen.
 
-Erstellung und Prüfung eines Docker-Images.
+Fehlerhafte Änderungen erkennen, bevor ein neues Docker-Image als erfolgreich markiert wird.
 
-Versionierung des Projekts mit Git und GitHub.
+Eine Weboberfläche zur übersichtlichen Darstellung der Monitoring-Ergebnisse bereitstellen.
 
-Speicherung der Monitoring-Ergebnisse in MariaDB.
+2. Aufbau
 
-Bereitstellung von Werkzeugen zur Datenbankverwaltung und einer Weboberfläche.
+Das Projekt besteht aus mehreren Komponenten, die unterschiedliche Aufgaben übernehmen.
 
-1.3 Verwendete Technologien
+KomponenteAufgabeNetWatchFührt die Netzwerkprüfungen durch und speichert die ErgebnisseMariaDBSpeichert Systeme, Prüfstatus und PrüfergebnissephpMyAdminErmöglicht die grafische Verwaltung und Einsicht in die DatenbankWeboberflächeDient zur Anzeige der gespeicherten Monitoring-ErgebnisseDockerStellt die Anwendung und die zugehörigen Dienste in Containern bereitDocker ComposeKonfiguriert die Container und deren ZusammenspielJenkinsAutomatisiert die Prüfung und Erstellung des Docker-ImagesGitHubDient zur Versionsverwaltung und als zentrale Quelle des Quellcodes
 
-TechnologieAufgabeGit und GitHubVersionsverwaltung und Quellcode-RepositoryJenkinsAutomatisierung der Build- und TestschritteBashImplementierung der Monitoring-AnwendungShellCheckStatische Analyse des Shell-SkriptsDockerErstellung und Ausführung von ContainernDocker ComposeKonfiguration und Verwaltung mehrerer ContainerMariaDBSpeicherung der Monitoring-DatenphpMyAdminGrafische Verwaltung der DatenbankPHP und ApacheVorgesehene Bereitstellung der WeboberflächeUbuntu ServerServerbetriebssystem für die Projektumgebung
+2.1 Serverumgebung
 
-2. Systemarchitektur
+Die Anwendung kann in einer virtuellen Maschine oder direkt auf dem Gerät betrieben werden. Getestet wurde das System mit Ubuntu Server 24.04 und VirtualBox auf einem Windows-11-Host.
 
-2.1 Aufbau der Entwicklungs- und Laufzeitumgebung
+Jenkins wird auf dem Ubuntu-Server betrieben und verwendet die dort verfügbare Docker-Engine für den Image-Build und die Container-Tests.
 
-Der Server wird als virtuelle Maschine unter VirtualBox betrieben. Auf dem Gastsystem Ubuntu Server 24.04 befinden sich Jenkins und Docker.
+Der grundlegende Aufbau mit einer VM sieht folgendermaßen aus:
 
-Jenkins läuft direkt auf dem Ubuntu-Host. Dadurch kann die Pipeline die dort installierte Docker-Engine verwenden, ohne eine zusätzliche Docker-in-Docker-Umgebung einrichten zu müssen.
-
-Der Aufbau lässt sich folgendermaßen darstellen:
-
-Windows 11
-└── VirtualBox
-    └── Ubuntu Server 24.04 (Minzerver)
+Host-System (Windows 11)
+└── VM-Anwendung (VirtualBox)
+    └── Linux (Ubuntu Server 24.04)
         ├── Jenkins
-        │   └── Pipeline: NetWatch
+        │   └── Pipeline NetWatch
         │       ├── Syntaxprüfung
         │       ├── ShellCheck
         │       ├── Funktionstest
         │       ├── Docker-Build
-        │       ├── Container-Test
-        │       └── Image-Tagging
+        │       └── Container-Test
         │
-        └── Docker
+        └── Docker / Docker Compose
             ├── NetWatch
             ├── MariaDB
             ├── phpMyAdmin
-            └── Apache/PHP-Webserver
+            └── Webserver
 
-GitHub dient als zentrale Quelle für den versionierten Projektcode. Jenkins lädt den Code aus dem Repository und verarbeitet ihn anhand der im Jenkinsfile definierten Pipeline.
+Die Dienste werden logisch getrennt betrieben. Dadurch kann beispielsweise die Datenbank unabhängig von der Monitoring-Anwendung verwaltet werden.
 
-2.2 Monitoring-Datenfluss
+2.2 Ablauf der Netzwerküberwachung
 
-Die Anwendung und die Datenbank arbeiten zusammen, um Prüfergebnisse dauerhaft zu speichern.
+Die Monitoring-Anwendung prüft die konfigurierten Zielsysteme und ermittelt, ob diese erreichbar sind.
+
+Die Ergebnisse werden in MariaDB gespeichert. Dazu gehören der Zeitpunkt der Prüfung, das geprüfte System, der Status und die Antwortzeit.
 
 Konfigurierte Zielsysteme
           |
           v
-     netwatch.sh
+      netwatch.sh
           |
           v
    Erreichbarkeitsprüfung
           |
           v
-     MariaDB-Client
+    MariaDB-Verbindung
           |
           v
-       MariaDB
+        MariaDB
           |
-          v
-   Datenbankabfrage
-          |
-          v
-  Weboberfläche / phpMyAdmin
+          +------------------+
+          |                  |
+          v                  v
+     Weboberfläche      phpMyAdmin
+     Ergebnisanzeige    Datenverwaltung
 
-Die Datenbankverbindung wird über Umgebungsvariablen konfiguriert. Innerhalb des Docker-Compose-Netzwerks wird der Dienstname db als Hostname verwendet. localhost wäre aus Sicht des NetWatch-Containers der Container selbst und nicht der Datenbankserver.
+Die Weboberfläche dient der übersichtlichen Darstellung der Daten. phpMyAdmin ist dagegen ein Werkzeug zur direkten Verwaltung der Datenbank und ersetzt kein eigenes Monitoring-Dashboard.
 
-3. Repository und Dateien
+3. Projektdateien
 
-Das GitHub-Repository enthält die zentralen Dateien für Entwicklung, Tests und Containerbetrieb.
+Die zentralen Projektdateien liegen im GitHub-Repository.
 
-DateiFunktionJenkinsfileDefiniert die automatisierte CI/CD-PipelineDockerfileBeschreibt den Aufbau des NetWatch-Imagescompose.yamlKonfiguriert die Laufzeitdienste und ihre Verbindungennetwatch.shEnthält die Monitoring-Logiktest.shFührt automatisierte Funktionstests ausREADME.mdEnthält die grundlegende Projektbeschreibung
+DateiBeschreibungREADME.mdBeschreibt das Projekt, seine Komponenten und den grundlegenden AblaufJenkinsfileDefiniert die automatisierte Jenkins-PipelineDockerfileBeschreibt den Aufbau des NetWatch-Docker-Imagescompose.yamlKonfiguriert die Docker-Dienstenetwatch.shHauptskript für die Netzwerküberwachungtest.shEnthält die automatisierten Funktionstests
 
 3.1 netwatch.sh
 
-Das Bash-Skript bildet die eigentliche Monitoring-Anwendung.
+Das Bash-Skript ist die eigentliche Monitoring-Anwendung. Es führt die Netzwerkprüfungen durch und verarbeitet die Ergebnisse.
 
-Es prüft konfigurierte Systeme auf Erreichbarkeit und speichert die ermittelten Ergebnisse in MariaDB. Die gespeicherten Informationen umfassen unter anderem:
+Die ermittelten Informationen werden an die Datenbank übergeben. Die Datenbankverbindung wird über Umgebungsvariablen konfiguriert, beispielsweise über DB_HOST, DB_PORT, DB_NAME, DB_USER und DB_PASSWORD.
 
-Identifikation des überwachten Systems
-
-Hostname und IP-Adresse
-
-Zeitpunkt der Prüfung
-
-Ergebnis beziehungsweise Status der Prüfung
-
-Antwortzeit
-
-Die Anwendung verwendet den MariaDB-Client, um SQL-Anweisungen an die Datenbank zu senden. Die Verbindungsparameter werden über Umgebungsvariablen bereitgestellt.
+Die Trennung von Anwendungscode und Konfiguration ermöglicht es, dieselbe Anwendung in unterschiedlichen Umgebungen auszuführen, ohne Zugangsdaten direkt in das Skript schreiben zu müssen.
 
 3.2 test.sh
 
-Das Testskript überprüft die Funktion der Bash-Anwendung. Es ermöglicht, grundlegende Erwartungen automatisiert zu kontrollieren, anstatt sich ausschließlich auf eine manuelle Ausführung zu verlassen.
+Das Testskript überprüft, ob die Anwendung die erwartete Funktion erfüllt.
 
-Das Skript wird sowohl direkt in Jenkins als auch innerhalb des erstellten Docker-Images ausgeführt.
+Es wird in zwei unterschiedlichen Umgebungen eingesetzt:
 
-Der Container-Test erwartet als letzte Ausgabezeile den Text TEST OK. Wird dieser Wert nicht gefunden oder schlägt der Testprozess fehl, wird die entsprechende Pipeline-Stufe als fehlgeschlagen behandelt.
+Direkt auf dem Jenkins-Agenten, um die Funktion des Quellcodes zu testen.
+
+Innerhalb des Docker-Containers, um zusätzlich die vorbereitete Laufzeitumgebung zu überprüfen.
+
+Der Container-Test erwartet als letzte Ausgabezeile TEST OK. Wird diese Ausgabe nicht erzeugt oder schlägt der Prozess fehl, wird die entsprechende Pipeline-Stufe als fehlgeschlagen gewertet.
 
 3.3 Dockerfile
 
-Das Dockerfile definiert die Umgebung, in der NetWatch ausgeführt wird.
+Das Dockerfile beschreibt, wie das NetWatch-Image erstellt wird.
 
-Der aktuelle Aufbau verwendet Alpine Linux als Basis:
+Der grundlegende Aufbau lautet:
 
 FROM alpine:3.22
 
@@ -188,317 +182,314 @@ RUN chmod +x netwatch.sh test.sh
 
 CMD ["./netwatch.sh"]
 
-Die wichtigsten Anweisungen:
+Die einzelnen Anweisungen haben folgende Aufgaben:
 
-FROM: Legt das Basis-Image fest.
+FROM alpine:3.22: Verwendet Alpine Linux als Basis-Image.
 
-RUN: Installiert Bash und den MariaDB-Client.
+RUN apk add: Installiert Bash und den MariaDB-Client.
 
-WORKDIR: Legt das Arbeitsverzeichnis im Container fest.
+WORKDIR /app: Legt das Arbeitsverzeichnis im Container fest.
 
-COPY: Überträgt die Skripte in das Image.
+COPY: Kopiert die benötigten Skripte in das Image.
 
-chmod +x: Macht die Skripte ausführbar.
+RUN chmod +x: Setzt die Ausführungsrechte der Skripte.
 
-CMD: Definiert den Standardprozess beim Start des Containers.
+CMD: Definiert das Programm, das beim Start des Containers ausgeführt wird.
 
-Das Image enthält damit die benötigten Programme und Skripte. Die eigentliche Laufzeitkonfiguration, beispielsweise die Datenbankverbindung, wird beim Start über Umgebungsvariablen ergänzt.
+Das Ergebnis ist ein Image mit einer definierten Umgebung für die Monitoring-Anwendung.
 
-4. CI/CD mit Jenkins
+3.4 compose.yaml
 
-4.1 Grundprinzip
+Docker Compose beschreibt die benötigten Dienste und deren Konfiguration. Dazu gehören die Images, Ports, Umgebungsvariablen, Abhängigkeiten und persistenten Volumes.
 
-CI/CD steht für Continuous Integration und Continuous Delivery beziehungsweise Deployment.
+Die Konfiguration trennt die Anwendung von der Datenbank und den zusätzlichen Verwaltungs- und Darstellungsdiensten.
 
-Continuous Integration bedeutet, dass Änderungen am Quellcode regelmäßig zusammengeführt und automatisiert überprüft werden. Durch automatisierte Tests können Fehler früh erkannt werden.
+Die Dienste kommunizieren innerhalb des Compose-Netzwerks über ihre Dienstnamen. So verwendet NetWatch den Hostnamen db, um die MariaDB zu erreichen.
 
-Im NetWatch-Projekt übernimmt Jenkins diese Prüfungen und erstellt anschließend ein Docker-Image, sofern die vorherigen Pipeline-Stufen erfolgreich waren.
+4. Vorgehen
 
-Der Ablauf ist:
+Das Projekt wird schrittweise entwickelt und anschließend durch eine automatisierte Pipeline überprüft.
 
-GitHub-Repository
-        |
-        v
-  Jenkins Checkout
-        |
-        v
-    Syntax Check
-        |
-        v
-     ShellCheck
-        |
-        v
-   Function Test
-        |
-        v
-    Docker Build
-        |
-        v
-   Container Test
-        |
-        v
- Create Latest Image
+4.1 Entwicklung und Versionsverwaltung
 
-Wichtig: Die derzeitige Jenkins-Pipeline erstellt und testet Docker-Images. Sie führt nicht automatisch docker compose up -d aus und aktualisiert damit noch nicht automatisch die komplette Laufzeitumgebung aus compose.yaml.
+Der Quellcode wird mit Git versioniert und in GitHub gespeichert. Änderungen an den Skripten und Konfigurationsdateien können dadurch nachvollzogen werden.
 
-4.2 Jenkinsfile
+GitHub ist außerdem die Quelle, aus der Jenkins den aktuellen Projektstand abruft.
 
-Das Jenkinsfile beschreibt die Pipeline deklarativ in Groovy. Es befindet sich direkt im GitHub-Repository, sodass der Build-Ablauf gemeinsam mit dem Anwendungscode versioniert wird.
+4.2 Automatisierte Prüfung mit Jenkins
 
-Der Pipeline-Block agent any erlaubt Jenkins, einen verfügbaren Agenten für die Ausführung zu verwenden. In der aktuellen Umgebung muss dieser Agent Zugriff auf Bash, ShellCheck und Docker haben.
+Jenkins lädt den Quellcode aus dem Repository und führt die im Jenkinsfile definierten Prüfungen aus.
 
-Die Pipeline besteht aus sechs Stufen.
+Zunächst werden die Bash-Syntax und der Code mit ShellCheck geprüft. Anschließend wird das Testskript ausgeführt.
 
-Stufe 1: Syntax Check
+Erst wenn diese Prüfungen erfolgreich sind, beginnt der Docker-Build.
 
-stage('Syntax Check') {
-    steps {
-        sh 'bash -n netwatch.sh'
-    }
-}
+4.3 Erstellen und Testen des Docker-Images
 
-bash -n prüft die Syntax des Skripts, ohne es tatsächlich auszuführen.
+Jenkins erstellt ein Docker-Image mit einer zur Build-Nummer passenden Kennzeichnung.
 
-Dadurch lassen sich beispielsweise fehlerhafte Anführungszeichen, unvollständige Kontrollstrukturen oder andere Syntaxfehler erkennen.
+Danach startet Jenkins einen Container aus diesem Image und führt darin die Tests erneut aus. So wird überprüft, ob die Anwendung auch in der vorbereiteten Containerumgebung funktioniert.
 
-Stufe 2: ShellCheck
+Nach erfolgreichem Abschluss wird das Image zusätzlich mit dem Tag latest versehen.
 
-stage('ShellCheck') {
-    steps {
-        sh 'shellcheck netwatch.sh'
-    }
-}
+4.4 Aufbau der Laufzeitumgebung
 
-ShellCheck analysiert das Skript statisch. Dabei werden mögliche Fehlerquellen, problematische Konstruktionen und typische Fehler bei der Bash-Programmierung erkannt.
+Docker Compose stellt die benötigten Container bereit. MariaDB speichert die Monitoring-Daten, phpMyAdmin ermöglicht deren Verwaltung und der Webserver bildet die Grundlage für die Anzeige der Ergebnisse.
 
-Im Gegensatz zu einem Funktionstest wird das Programm dafür nicht regulär ausgeführt.
+Die Compose-Umgebung ist vom Image-Build der Jenkins-Pipeline zu unterscheiden. Die aktuelle Pipeline aktualisiert die gesamte Laufzeitumgebung noch nicht automatisch.
 
-ShellCheck muss auf dem Jenkins-Agenten installiert sein.
+5. CI/CD mit Jenkins
 
-Stufe 3: Function Test
+5.1 Grundprinzip
 
-stage('Function Test') {
-    steps {
-        sh './test.sh'
-    }
-}
+CI/CD steht für Continuous Integration und Continuous Delivery beziehungsweise Continuous Deployment.
 
-In dieser Stufe wird das Testskript direkt auf dem Jenkins-Agenten ausgeführt.
+Continuous Integration bezeichnet die automatisierte Integration und Überprüfung von Änderungen am Quellcode. Fehler sollen möglichst früh erkannt werden.
 
-Damit wird geprüft, ob die erwartete Funktion der Anwendung gegeben ist. Schlägt der Test fehl und liefert einen Fehlerstatus zurück, bricht Jenkins die Pipeline vor dem Image-Build ab.
+Continuous Delivery erweitert diesen Ablauf um die Vorbereitung einer auslieferbaren Version. Continuous Deployment geht darüber hinaus und stellt erfolgreiche Änderungen automatisch in der Zielumgebung bereit.
 
-Stufe 4: Docker Build
+Im NetWatch-Projekt übernimmt Jenkins die automatisierte Prüfung und Erstellung des Docker-Images.
 
-stage('Docker Build') {
-    steps {
-        sh 'docker build -t netwatch-bash:${BUILD_NUMBER} .'
-    }
-}
+5.2 Pipeline-Ablauf
 
-Docker erstellt ein Image auf Basis des Dockerfiles.
+GitHub
+   |
+   v
+Jenkins Checkout
+   |
+   v
+Syntax Check
+   |
+   v
+ShellCheck
+   |
+   v
+Function Test
+   |
+   v
+Docker Build
+   |
+   v
+Container Test
+   |
+   v
+Create Latest Image
 
-Die Variable ${BUILD_NUMBER} wird von Jenkins bereitgestellt und enthält die laufende Build-Nummer. Dadurch erhält jeder Build einen eigenen Image-Tag.
+Die Pipeline ist im Jenkinsfile hinterlegt und wird dort als deklarative Pipeline definiert.
 
-Beispielsweise könnte ein Image so heißen:
+5.3 Die Pipeline-Stufen
 
-netwatch-bash:15
+1. Syntax Check
 
-Die Versionsnummer ermöglicht es, verschiedene Build-Ergebnisse voneinander zu unterscheiden.
+bash -n netwatch.sh
 
-Stufe 5: Container Test
+Bash überprüft die Syntax des Skripts, ohne es regulär auszuführen. Fehlerhafte Anführungszeichen oder unvollständige Kontrollstrukturen können dadurch erkannt werden.
 
-stage('Container Test') {
-    steps {
-        sh '''
-            OUTPUT=$(docker run --rm netwatch-bash:${BUILD_NUMBER} ./test.sh)
-            LAST_LINE=$(echo "$OUTPUT" | tail -n 1)
+2. ShellCheck
 
-            if [ "$LAST_LINE" = "TEST OK" ]; then
-                echo "Docker-Test erfolgreich!"
-            else
-                echo "Docker-Test fehlgeschlagen!"
-                exit 1
-            fi
-        '''
-    }
-}
+shellcheck netwatch.sh
 
-In dieser Stufe wird das zuvor erstellte Image gestartet und test.sh innerhalb des Containers ausgeführt.
+ShellCheck analysiert den Quellcode statisch und weist auf problematische Konstruktionen sowie typische Fehlerquellen hin.
 
-Die Option --rm entfernt den Testcontainer nach dem Ende seiner Ausführung.
+3. Function Test
 
-Jenkins prüft die letzte Zeile der Ausgabe. Nur wenn diese exakt TEST OK lautet, wird der Test als erfolgreich gewertet.
+./test.sh
 
-Dieser Schritt ist wichtig, weil ein Skript außerhalb eines Containers funktionieren kann, im Image jedoch beispielsweise Programme oder Dateien fehlen könnten.
+Das Testskript wird direkt auf dem Jenkins-Agenten ausgeführt. Es überprüft die erwartete Funktion der Anwendung.
 
-Der Container-Test prüft somit zusätzlich die vorbereitete Laufzeitumgebung.
+4. Docker Build
 
-Stufe 6: Create Latest Image
+docker build -t netwatch-bash:${BUILD_NUMBER} .
 
-stage('Create Latest Image') {
-    steps {
-        sh '''
-            docker tag \
-                netwatch-bash:${BUILD_NUMBER} \
-                netwatch-bash:latest
-        '''
-    }
-}
+Docker erstellt das Image. Die Jenkins-Variable BUILD_NUMBER kennzeichnet, aus welchem Build das Image hervorgegangen ist.
 
-Wenn alle vorherigen Stufen erfolgreich waren, erhält das geprüfte Image zusätzlich den Tag latest.
+5. Container Test
 
-Damit kann es über einen festen Namen angesprochen werden, ohne dass bei jeder Verwendung die konkrete Build-Nummer bekannt sein muss.
+Jenkins startet einen Container aus dem zuvor erstellten Image und führt darin das Testskript aus.
 
-Der Tag latest wird hierbei lediglich lokal vergeben. Er bedeutet nicht automatisch, dass ein Image in eine Registry hochgeladen oder auf einem Produktivsystem bereitgestellt wurde.
+Anschließend wird die letzte Zeile der Ausgabe geprüft. Nur bei der erwarteten Ausgabe TEST OK wird die Pipeline fortgesetzt.
 
-4.3 Verhalten bei Fehlern
+6. Create Latest Image
 
-Jenkins führt die Pipeline-Stufen nacheinander aus. Schlägt ein Schritt fehl, werden die nachfolgenden regulären Stufen nicht weiter ausgeführt.
+docker tag \
+  netwatch-bash:${BUILD_NUMBER} \
+  netwatch-bash:latest
 
-Beispiele:
+Das geprüfte Image erhält zusätzlich den Tag latest. Dieser Tag erleichtert die Verwendung des zuletzt erfolgreich erstellten Images.
 
-Ein Syntaxfehler verhindert den Übergang zu den nachfolgenden Prüfungen.
+Er stellt jedoch weder einen Upload in eine Registry noch ein automatisches Deployment dar.
 
-Ein fehlgeschlagener Funktionstest verhindert den Image-Build.
+5.4 Fehlerbehandlung
 
-Ein fehlgeschlagener Container-Test verhindert das Tagging als latest.
+Die Pipeline wird bei einem fehlgeschlagenen Schritt abgebrochen. Dadurch werden nachfolgende reguläre Stufen nicht ausgeführt.
 
-Am Ende gibt der post-Block eine Erfolgsmeldung oder eine Fehlermeldung aus.
+Ein Syntaxfehler verhindert beispielsweise den Beginn des Docker-Builds. Ein fehlgeschlagener Container-Test verhindert, dass das neue Image als latest markiert wird.
 
-Dadurch ist im Jenkins-Build nachvollziehbar, ob der aktuelle Stand die definierten Prüfungen bestanden hat.
+Über den post-Block gibt Jenkins abschließend eine Erfolgsmeldung oder eine Fehlermeldung aus.
 
-5. Docker Compose und die Laufzeitdienste
+Dieses Verhalten sorgt dafür, dass ein Image erst nach den definierten Prüfungen den zusätzlichen Tag latest erhält.
 
-5.1 Aufgabe von Docker Compose
+6. Docker Compose und Datenbank
 
-Docker Compose verwaltet mehrere zusammengehörige Container anhand einer YAML-Konfigurationsdatei.
+NetWatch verwendet Docker Compose, um die einzelnen Komponenten der Anwendung als separate Container zu betreiben. Dadurch können der Netzwerkmonitor, die Datenbank und die Weboberflächen unabhängig voneinander verwaltet werden.
 
-Im Projekt übernimmt compose.yaml die Konfiguration der Dienste:
+Container und Aufgaben
 
-DienstAufgabenetwatchFührt die Monitoring-Anwendung ausdbStellt die MariaDB-Datenbank bereitphpmyadminErmöglicht die grafische DatenbankverwaltungwebStellt die Apache/PHP-Webserverumgebung bereit
+Container / DienstImageAufgabenetwatchEigenes Image, gebaut über DockerfileFührt das Bash-Skript netwatch.sh aus, prüft das konfigurierte Zielsystem und übermittelt die Prüfergebnisse an die Datenbank.dbmariadbSpeichert die überwachten Systeme, Statuswerte und Prüfergebnisse dauerhaft in der Datenbank netwatchdb.webEigenes Image, gebaut über Dockerfile.webStellt das PHP-Dashboard über einen Apache-Webserver bereit und liest die Prüfergebnisse aus der Datenbank aus.phpmyadminphpmyadminErmöglicht die Verwaltung und Einsicht in die MariaDB-Datenbank über eine grafische Weboberfläche.
 
-Die Dienste können über das von Docker Compose bereitgestellte Netzwerk miteinander kommunizieren.
+Kommunikation zwischen den Containern
 
-5.2 NetWatch-Dienst
+Die Container kommunizieren innerhalb des von Docker Compose eingerichteten Netzwerks miteinander. Für Datenbankverbindungen verwenden die Dienste den Compose-Dienstnamen db als Hostnamen und den internen MariaDB-Port 3306.
 
-Der Dienst netwatch wird aus dem lokalen Dockerfile erstellt:
+Der Netzwerkmonitor und das PHP-Dashboard erhalten die Zugangsdaten zur Datenbank über Umgebungsvariablen. Die Zugangsdaten werden von Jenkins für den Deployment-Schritt bereitgestellt und nicht im Git-Repository hinterlegt.
 
-netwatch:
-  build: .
-  restart: always
-  environment:
-    DB_HOST: db
-    DB_PORT: 3306
-    DB_NAME: netwatchdb
-    DB_USER: ${MARIADB_USER}
-    DB_PASSWORD: ${MARIADB_PASSWORD}
+Ports und Zugriff
 
-build: . weist Docker Compose an, das Image aus dem aktuellen Projektverzeichnis zu erstellen.
+DienstHost-PortContainer-PortZugriffweb8080http://<Server-IP>/phpmyadmin676780http://<Server-IP>:6767/db–3306Interne Kommunikation im Docker-Netzwerk
 
-Die Datenbankverbindung wird über Umgebungsvariablen konfiguriert. Der Hostname db verweist auf den Datenbankdienst im Compose-Netzwerk.
+Die Datenbank wird nicht über einen veröffentlichten Host-Port bereitgestellt. Die Weboberflächen sind dagegen über die angegebenen Host-Ports erreichbar.
 
-restart: always weist Docker an, den Container grundsätzlich erneut zu starten, wenn er beendet wurde. Diese Einstellung ersetzt allerdings keine Fehlerüberwachung der Anwendung.
+Persistente Daten
 
-5.3 MariaDB-Dienst
+Docker Volumes sorgen dafür, dass wichtige Daten auch nach dem Entfernen oder Neuerstellen eines Containers erhalten bleiben.
 
-Der Dienst db verwendet ein MariaDB-Image:
+DatabaseVolume speichert die MariaDB-Daten unter /var/lib/mysql.
 
-db:
-  image: mariadb
-  restart: always
-  environment:
-    MARIADB_DATABASE: netwatchdb
-    MARIADB_USER: ${MARIADB_USER}
-    MARIADB_PASSWORD: ${MARIADB_PASSWORD}
-    MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-  volumes:
-    - DatabaseVolume:/var/lib/mysql
+WebserverVolume wird unter /var/www/html eingebunden und enthält die Dateien des Webservers.
 
-Die Umgebungsvariablen definieren die Datenbank und die Zugangsdaten bei der Initialisierung.
+Die Volumes sind vom Lebenszyklus der Container getrennt. Ein erneutes Erstellen der Container löscht daher nicht automatisch die darin gespeicherten Daten.
 
-Das Volume DatabaseVolume wird nach /var/lib/mysql eingebunden. Dadurch bleiben die Datenbankdateien außerhalb des beschreibbaren Container-Dateisystems erhalten.
+Build und Deployment mit Jenkins
 
-Wird der Container ersetzt, bleiben die Daten grundsätzlich im benannten Volume erhalten. Ein Volume ist jedoch kein vollständiges Backup und schützt nicht vor jedem Datenverlust.
+Jenkins übernimmt den automatisierten Build- und Deployment-Prozess. Nach dem Abrufen des aktuellen Quellcodes aus Git werden die Tests ausgeführt. Bei erfolgreichem Testlauf baut Jenkins die benötigten Docker-Images und startet beziehungsweise aktualisiert die Dienste mit:
 
-5.4 phpMyAdmin
+docker compose -p netwatch up -d --build
 
-phpMyAdmin bietet eine grafische Oberfläche für die Verwaltung von MariaDB.
+Die Option --build veranlasst Docker Compose, die Images bei Bedarf neu zu bauen. Mit -d werden die Container im Hintergrund gestartet.
 
-Die aktuelle Konfiguration veröffentlicht den Container-Port 80 unter Port 6767 des Ubuntu-Hosts:
+Die Konfiguration restart: always sorgt dafür, dass Docker versucht, die betreffenden Container nach einem Beenden oder einem Neustart des Docker-Dienstes erneut zu starten. Bei einem einmalig ausführbaren Skript wie netwatch.sh muss dabei sichergestellt werden, dass es nicht unmittelbar nach jedem Durchlauf erneut gestartet wird und dadurch zu viele Datenbankeinträge erzeugt.
 
-phpmyadmin:
-  image: phpmyadmin
-  restart: always
-  ports:
-    - 6767:80
-  environment:
-    - PMA_ARBITRARY=1
-  depends_on:
-    - db
+6.1 MariaDB
 
-Die Oberfläche ist damit unter folgender Adresse erreichbar, sofern Netzwerk und Firewall den Zugriff zulassen:
+MariaDB dient zur dauerhaften Speicherung der Monitoring-Ergebnisse.
 
-http://<IP des Servers>:6767
+Die Zugangsdaten und der Datenbankname werden über Umgebungsvariablen konfiguriert. Die Anwendung verwendet dieselben Verbindungsparameter, um ihre Prüfergebnisse zu speichern.
 
-Port 6767 wurde gewählt, damit phpMyAdmin nicht mit dem auf Port 8080 betriebenen Jenkins kollidiert.
+Die Datenbank wird in einem eigenen Container betrieben und ist dadurch von der Monitoring-Anwendung getrennt.
 
-depends_on legt eine Startreihenfolge fest, garantiert für sich allein aber nicht, dass MariaDB bereits vollständig betriebsbereit ist.
+6.2 phpMyAdmin
 
-5.5 Webserver
+phpMyAdmin bietet eine grafische Oberfläche für die Verwaltung der MariaDB.
 
-Der Dienst web verwendet php:apache und veröffentlicht Port 80:
+Der Dienst veröffentlicht den Container-Port 80 unter dem Host-Port 6767. Die Oberfläche ist daher unter folgender Adresse erreichbar:
 
-web:
-  image: php:apache
-  restart: always
-  ports:
-    - 80:80
-  depends_on:
-    - db
+http://<IP-Adresse-des-Ubuntu-Servers>:6767
 
-Damit wird ein Apache-Webserver mit PHP-Unterstützung gestartet.
+Die Portnummer wurde gewählt, damit phpMyAdmin nicht mit Jenkins auf Port 8080 kollidiert.
 
-Aktueller Stand: Die Compose-Konfiguration stellt den Webserver-Container bereit. Eine vollständige Integration der projektspezifischen Weboberfläche muss zusätzlich sicherstellen, dass der PHP-Code in das Image kopiert oder korrekt eingebunden wird. Allein durch image: php:apache wird die eigene NetWatch-Weboberfläche noch nicht ausgeliefert.
+6.3 Datenbank
 
-6. Datenbank und Datenmodell
+Die Datenbank von NetWatch heißt netwatchdb. Die besteht aus den drei Tabellen system, status und checks.
 
-MariaDB speichert die Ergebnisse der Netzwerkprüfungen dauerhaft.
+Tabellen
 
-Das Datenmodell verwendet drei zentrale Tabellen:
+system
 
-TabelleZwecksystemEnthält die überwachten SystemestatusEnthält die möglichen Prüfstatuscheck beziehungsweise der implementierte PrüfdatensatzSpeichert einzelne Prüfergebnisse
+Speichert die überwachten Systeme.
 
-Die genaue Benennung der Prüftabelle ist anhand des tatsächlich installierten Datenbankschemas zu überprüfen. In der bisherigen Implementierung wurde die Tabelle zunächst mit einem Tippfehler angelegt und anschließend auf check_id als Primärschlüssel korrigiert.
+AttributBeschreibungsystem_id (PK)Eindeutige ID des Systemssystem_nameName des überwachten Systems
 
-Die Prüfergebnisse enthalten unter anderem den Prüfzeitpunkt, den Status und die Antwortzeit. Fremdschlüssel verknüpfen die Prüfergebnisse mit dem überwachten System und dem jeweiligen Status.
+status
 
-Das Datenmodell vermeidet dadurch, dass Hostinformationen und Statusbeschreibungen bei jeder einzelnen Prüfung vollständig wiederholt werden müssen.
+Enthält die möglichen Statuswerte einer Prüfung.
 
-7. Konfiguration und Zugangsdaten
+AttributBeschreibungstatus_id (PK)Eindeutige ID des Statusstatus_nameStatusbezeichnung, z. B. ONLINE oder OFFLINE
+
+checks
+
+Speichert die Ergebnisse der durchgeführten Systemprüfungen.
+
+AttributBeschreibungcheck_id (PK)Eindeutige ID der Prüfungsystem_id (FK)Verweis auf das geprüfte Systemcheck_dateZeitpunkt der Prüfungstatus_id (FK)Verweis auf den ermittelten Statusresponse_timeAntwortzeit in Millisekunden; darf NULL sein
+
+PK = Primärschlüssel, FK = Fremdschlüssel.
+
+Beziehungen und Kardinalitäten
+
+system zu checks (1): Ein System kann mehrere Prüfergebnisse besitzen. Jedes Prüfergebnis gehört zu genau einem System.
+
+status zu checks (1): Ein Status kann mehreren Prüfergebnissen zugeordnet sein. Jedes Prüfergebnis verweist auf genau einen Status.
+
+Die Tabelle checks verbindet somit das geprüfte System mit dem ermittelten Status und speichert zusätzlich den Prüfzeitpunkt sowie die Antwortzeit.
+
+Datenintegrität
+
+Die Primärschlüssel identifizieren jeden Datensatz eindeutig. Die Fremdschlüssel in checks stellen sicher, dass die referenzierten Systeme und Statuswerte in den zugehörigen Tabellen vorhanden sind.
+
+Die Spalte response_time speichert die Antwortzeit in Millisekunden. Wenn keine Antwortzeit ermittelt werden kann, wird NULL gespeichert.
+
+6.4 Persistente Speicherung
+
+Für die dauerhafte Speicherung der Daten verwendet NetWatch benannte Docker Volumes.
+
+DatabaseVolume speichert die MariaDB-Daten unter /var/lib/mysql.
+
+WebserverVolume wird unter /var/www/html eingebunden und dient der Bereitstellung der Webdateien.
+
+Docker Volumes sind vom beschreibbaren Dateisystem eines Containers getrennt. Dadurch bleiben die gespeicherten Daten grundsätzlich auch nach dem Neuerstellen eines Containers erhalten.
+
+Ein Volume ersetzt jedoch kein Backup. Bei versehentlichem Löschen oder einer Beschädigung der Daten können die gespeicherten Informationen verloren gehen.
+
+6.5 Weboberfläche
+
+Die NetWatch-Weboberfläche basiert auf PHP und Apache. Die Datei web/index.php wird über das Dockerfile.web in das Webserver-Image kopiert. Die PHP-Erweiterung mysqli wird installiert, damit die Webanwendung eine Verbindung zu MariaDB herstellen kann.
+
+Der Dienst web stellt den Container-Port 80 über den Host-Port 80 bereit. Die Oberfläche ist dadurch unter der Adresse des Servers erreichbar.
+
+Die Webanwendung verwendet die Umgebungsvariablen DB_HOST, DB_PORT, DB_NAME, DB_USER und DB_PASSWORD, um die Datenbankverbindung herzustellen. Als Datenbankhost wird der Compose-Dienstname db verwendet.
+
+Das Volume WebserverVolume wird nach /var/www/html eingebunden. Da ein eingebundenes Volume die Dateien im entsprechenden Container-Verzeichnis überlagern kann, müssen Änderungen an der Weboberfläche bei einem erneuten Deployment gesondert berücksichtigt werden.
+
+6.6 Deployment mit Jenkins
+
+Jenkins automatisiert den Build und das Deployment der Docker-Anwendung. Zunächst wird der aktuelle Quellcode aus dem Git-Repository ausgecheckt. Anschließend werden die Shell-Syntax, die Funktionen des Skripts und der Container-Build getestet.
+
+Nur bei erfolgreichem Testlauf wird das Deployment ausgeführt. Dafür verwendet Jenkins folgenden Befehl:
+
+docker compose -p netwatch up -d --build
+
+-p netwatch legt den Compose-Projektnamen fest.
+
+up erstellt und startet die definierten Dienste beziehungsweise aktualisiert sie.
+
+-d startet die Container im Hintergrund.
+
+--build baut die benötigten Images vor dem Start neu.
+
+Die Zugangsdaten für MariaDB werden Jenkins über gespeicherte Credentials bereitgestellt und als Umgebungsvariablen an Docker Compose übergeben. Dadurch müssen die Passwörter nicht im Git-Repository gespeichert werden.
+
+Die Konfiguration restart: always veranlasst Docker, einen Container nach einem Beenden oder einem Neustart des Docker-Dienstes erneut zu starten. Da netwatch.sh derzeit als einzelner Prüflauf ausgeführt wird, muss die Ausführungssteuerung so gestaltet sein, dass der Container nicht unmittelbar nach jedem Prüflauf erneut startet und dadurch unnötig viele Datenbankeinträge erzeugt.
+
+7. Konfiguration und Sicherheit
 
 7.1 Umgebungsvariablen
 
-Die Zugangsdaten werden in compose.yaml über Variablen wie ${MARIADB_USER}, ${MARIADB_PASSWORD} und ${MARIADB_ROOT_PASSWORD} referenziert.
+Die Zugangsdaten werden über Umgebungsvariablen an die Container übergeben.
 
-Die konkreten Werte sollten nicht direkt in das öffentliche GitHub-Repository geschrieben werden.
+In der Compose-Datei werden dafür Platzhalter wie ${MARIADB_USER}, ${MARIADB_PASSWORD} und ${MARIADB_ROOT_PASSWORD} verwendet.
 
-Für die lokale Compose-Konfiguration kann eine separate .env-Datei verwendet werden. Diese Datei muss durch .gitignore vom Commit ausgeschlossen sein.
+Die konkreten Zugangsdaten gehören nicht in das öffentliche GitHub-Repository. Für die lokale Entwicklung kann eine separate .env-Datei verwendet werden, die durch .gitignore vom Commit ausgeschlossen wird. Empfohlen werden jedoch Jenkins-Credentials.
 
-Beispiel für die Struktur einer lokalen Konfiguration:
+7.2 Jenkins-Zugangsdaten
 
-MARIADB_USER=<datenbank-benutzer>
-MARIADB_PASSWORD=<datenbank-passwort>
-MARIADB_ROOT_PASSWORD=<root-passwort>
+Hier werden die Zugangsdaten im Jenkins-Credential-Store hinterlegt und werden weder in einer .env-Datei noch direkt in die Jenkinsfile geschrieben oder in der Repository gespeichert. Die Zugangsdaten, die für Datenbanktests benötigt werden, sind so getrennt vom Quellcode verwaltet.
 
-Die Platzhalter sind durch geeignete Werte zu ersetzen. Die Datei enthält echte Zugangsdaten und darf nicht veröffentlicht werden.
+7.3 Netzwerkzugriff
 
-7.2 Passwörter und Zugangsdaten
+Die veröffentlichten Ports ermöglichen den Zugriff auf die entsprechenden Dienste, sofern die Netzwerkkonfiguration und Firewall dies zulassen.
 
-Die Zugangsdaten der Datenbank gehören nicht in das Jenkinsfile.
+Insbesondere phpMyAdmin sollte nicht ungeschützt aus öffentlichen Netzen erreichbar sein. Der Zugriff sollte auf die benötigten Benutzer und Netzwerke beschränkt werden.
 
-Diese werden über den Jenkins-Credential-Store eingetragen.
-
-8. Installation und Ausführung
+8. Ausführung und Überprüfung
 
 8.1 Voraussetzungen
 
@@ -530,8 +521,6 @@ ShellCheck
 
 Java (OpenJDK)
 
-Der Jenkins-Ausführungsagent benötigt Zugriff auf die benötigten Programme sowie auf die Docker-Engine sowie Java.
-
 8.3 Jenkins einrichten
 
 Um die Jenkins-Pipeline auszuführen, muss Jenkins erst eingerichtet werden.
@@ -542,22 +531,22 @@ Benutzername und Passwort: Anmeldedaten für die Datenbank
 
 Secret text: Zugangsdaten für die Datenbank als root
 
-Nun kann die Pipeline angelegt werden. Dafür legt man unter "Element anlegen" eine neue Pipeline an. Der empfohlene Name ist "NetWatch". Unter Definition wählt man "Pipeline script from SCM" aus, dort unter SCM "Git" und fügt die Repository URL (https://github.com/milchmeyerALO/netwatch.git) ein. Anschließend kann man sie mit "Jetzt bauen" ausführen.
+Nun kann die Pipeline angelegt werden. Dafür legt man unter "Element anlegen" eine neue Pipeline an. Der empfohlene Name ist "NetWatch". Unter Definition wählt man "Pipeline script from SCM" aus, dort unter SCM "Git" und fügt die Repository-URL (https://github.com/milchmeyerALO/netwatch.git) ein. Anschließend kann man sie mit "Jetzt bauen" ausführen.
 
 8.4 Datenbank einrichten
 
-Ein Template für die Datenbank ist im Repository enthalten. Dieses kann über phpmyadmin importiert werden.
+Ein Template für die Datenbank ist ist in der Repository verfügbar und kann über phpmyadmin importiert werden. Zu prüfende Systeme werden in die Tabelle "systems" eingetragen.
 
 9. Fehleranalyse
 
-ProblemMögliche UrsachePrüfschrittJenkins kann das Repository nicht ladenFalsche Repository-URL oder fehlende BerechtigungenSCM-Konfiguration und Build-Log prüfenShellCheck schlägt fehlInstalliertes Werkzeug fehlt oder Code enthält WarnungenShellCheck-Ausgabe untersuchenDocker-Build schlägt fehlFehler im Dockerfile oder fehlende DateienBuild-Log und Projektverzeichnis prüfenContainer-Test schlägt fehlFalsche Ausgabe oder Fehler im TestprozessAusgabe von test.sh untersuchenNetWatch erreicht MariaDB nichtFalscher Hostname oder fehlerhafte ZugangsdatenUmgebungsvariablen und Compose-Netzwerk prüfenMariaDB startet nichtUngültige Konfiguration oder unzureichender Speicherplatzdocker compose logs db ausführenDaten fehlen nach Container-NeuerstellungVolume fehlt, wurde geändert oder Daten wurden gelöschtVolume-Konfiguration prüfenWeboberfläche ist nicht erreichbarWebdateien fehlen oder Port ist nicht erreichbarContainer-Logs, Portfreigabe und Dateibereitstellung prüfen
-
-Ein besonders wichtiger Unterschied besteht zwischen einem erfolgreichen Image-Build und einer erfolgreich laufenden Gesamtanwendung: Die Jenkins-Pipeline testet das NetWatch-Image, aber nicht automatisch sämtliche Verbindungen zwischen NetWatch, MariaDB, phpMyAdmin und dem Webserver.
+ProblemMögliche UrsacheÜberprüfungRepository kann nicht geladen werdenFalsche URL oder fehlende BerechtigungenSCM-Konfiguration und Build-Log prüfenShellCheck schlägt fehlWarnungen oder Fehler im SkriptShellCheck-Ausgabe untersuchenDocker-Build schlägt fehlFehler im Dockerfile oder fehlende DateienBuild-Log kontrollierenContainer-Test schlägt fehlTestfehler oder unerwartete AusgabeAusgabe von test.sh prüfenDatenbankverbindung schlägt fehlFalscher Hostname oder fehlerhafte ZugangsdatenUmgebungsvariablen und Netzwerk prüfenMariaDB startet nichtKonfigurationsfehler oder fehlender SpeicherplatzDatenbank-Logs prüfenWeboberfläche wird nicht angezeigtPHP-Dateien fehlen oder Port ist nicht erreichbarWebserver-Logs und Dateibereitstellung prüfen
 
 Fazit
 
-Das NetWatch-Projekt verbindet Netzwerk-Monitoring mit automatisierter Softwareprüfung und Containerisierung.
+NetWatch verbindet Netzwerk-Monitoring mit Versionsverwaltung, automatisierter Prüfung und Containerisierung.
 
-Jenkins übernimmt die wiederholbaren Prüf- und Build-Schritte. Docker stellt eine definierte Laufzeitumgebung für die Bash-Anwendung bereit, während Docker Compose die zugehörigen Dienste konfiguriert. MariaDB ermöglicht die dauerhafte Speicherung der Prüfergebnisse.
+Die Bash-Anwendung führt die Netzwerkprüfungen durch und speichert die Ergebnisse in MariaDB. Docker stellt eine definierte Laufzeitumgebung bereit, während Docker Compose die beteiligten Dienste konfiguriert.
 
-Der wesentliche Vorteil besteht darin, dass Änderungen am Anwendungscode systematisch geprüft werden können, bevor ein neues Docker-Image als erfolgreicher Build markiert wird. Gleichzeitig bildet das Projekt eine Grundlage für die spätere Erweiterung um ein vollständig automatisiertes Deployment und eine integrierte Weboberfläche.
+Jenkins automatisiert die Überprüfung des Quellcodes und erstellt nach erfolgreichen Tests ein Docker-Image. Dadurch können Fehler frühzeitig erkannt werden, bevor ein neuer Build als erfolgreich gekennzeichnet wird.
+
+Das Projekt bildet damit eine Grundlage für eine vollständige CI/CD-Pipeline, die zukünftig auch das automatisierte Deployment der gesamten Anwendung und ihrer Weboberfläche umfassen kann.
