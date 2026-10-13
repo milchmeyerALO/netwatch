@@ -38,7 +38,7 @@ services:
     restart: always
     ports:
       - 80:80
-     environment:
+    environment:
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: netwatchdb
