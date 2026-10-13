@@ -33,6 +33,16 @@ echo "Prüfzeitpunkt: $CHECK_DATE"
 echo "Status: $STATUS"
 echo "Antwortzeit: ${RESPONSE_TIME:-N/A} ms"
 
+# Im Function-Test keine Datenbankverbindung aufbauen
+if [ "${NETWATCH_TEST_MODE:-0}" = "1" ]; then
+    exit 0
+fi
+
+# Status-ID aus der Datenbank ermitteln
+case "$STATUS" in
+    ONLINE)  STATUS_ID=1 ;;
+    OFFLINE) STATUS_ID=2 ;;
+esac
 
 # Status-ID aus der Datenbank ermitteln
 case "$STATUS" in
