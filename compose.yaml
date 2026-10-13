@@ -31,7 +31,7 @@ services:
     depends_on:
       - db
 
-    web:
+  web:
     build:
       context: .
       dockerfile: Dockerfile.web
