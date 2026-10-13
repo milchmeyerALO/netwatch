@@ -2,7 +2,7 @@
 
 set -e
 
-OUTPUT=$(./netwatch.sh)
+OUTPUT=$(NETWATCH_TEST_MODE=1 ./netwatch.sh)
 
 echo "$OUTPUT"
 
