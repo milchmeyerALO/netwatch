@@ -1,7 +1,7 @@
 services:
 
   netwatch:
-    build: .
+    image: netwatch-bash:latest
     restart: "no"
     environment:
       DB_HOST: db
