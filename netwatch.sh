@@ -53,7 +53,7 @@ run_check() {
     
     # Im Function-Test keine Datenbankverbindung aufbauen
     if [ "${NETWATCH_TEST_MODE:-0}" = "1" ]; then
-        exit 0
+        return 0
     fi
     
     # ---------------------------------
@@ -113,13 +113,18 @@ fi
 # Normalbetrieb: Endlosschleife
 # ---------------------------------
 
+#Da der Container dauerhaft läuft, sollte NetWatch auf ein Beendigungssignal von Docker reagieren können
+trap 'echo "NetWatch wird beendet."; exit 0' SIGTERM SIGINT
+
 while true; do
 
     # Zeitpunkt des Prüfungsstarts merken
     START=$SECONDS
 
     # Einen vollständigen Prüfzyklus ausführen
-    run_check
+    if ! run_check; then
+        echo "WARNUNG: Prüfzyklus mit Fehler beendet."
+    fi
 
     # Laufzeit der Prüfung berechnen
     ELAPSED=$((SECONDS - START))
