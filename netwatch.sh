@@ -44,12 +44,6 @@ case "$STATUS" in
     OFFLINE) STATUS_ID=2 ;;
 esac
 
-# Status-ID aus der Datenbank ermitteln
-case "$STATUS" in
-    ONLINE)  STATUS_ID=1 ;;
-    OFFLINE) STATUS_ID=2 ;;
-esac
-
 # System-ID aus der Datenbank ermitteln
 SYSTEM_ID=$(mariadb \
     --host="$DB_HOST" \
