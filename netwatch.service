@@ -1,0 +1,9 @@
+[Unit]
+Description=NetWatch Network Check
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/PFAD/ZU/netwatch
+ExecStart=/usr/bin/docker compose run --rm netwatch
