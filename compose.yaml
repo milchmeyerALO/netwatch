@@ -2,7 +2,7 @@ services:
 
   netwatch:
     build: .
-    restart: always
+    restart: "no"
     environment:
       DB_HOST: db
       DB_PORT: 3306
